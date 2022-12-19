@@ -1,0 +1,42 @@
+<aside class="menu is-hidden-mobile sticky" style="overflow-y:auto; overflow-x: hidden; height:calc(100vh - 100px)">
+	<p class="menu-label">Recently Active Moderators</p>
+	<ul class="menu-list" id="activeInfo"></ul>
+
+	<p id="wordcounter" class="menu-label">Highlighted Word Count: <span id="wordcount">0</span></p>
+	
+
+	<p class="menu-label">Items with User Reports</p>
+	<ul class="menu-list">
+		{% for post in queueItems %}
+			{% if post.user_reports | length > 0%}
+				<li id="userreportlink-{{post.id}}"><a href="#queueitem-{{post.id}}" class="is-size-7">{{post.title}}</a></li>
+			{%endif%}
+		{%endfor%}
+	</ul>
+		<p class="menu-label">Items with Mod Reports</p>
+	<ul class="menu-list">
+		{% for post in queueItems %}
+			{%for report in post.mod_reports%}
+				{% if report[1] != "AutoModerator" %}
+					<li id="modreportlink-{{post.id}}"><a href="#queueitem-{{post.id}}" class="is-size-7">{{post.title}}</a></li>
+				{%endif%}
+			{%endfor%}
+		{%endfor%}
+	</ul>
+
+</aside>
+
+<script>
+
+	document.addEventListener("selectionchange", event => {
+		let selection = document.getSelection ? document.getSelection().toString() : document.selection.createRange().toString()
+		counter = document.getElementById("wordcount")
+		if (selection.length > 0) {
+			counter.innerHTML = selection.split(" ").length
+		} else {
+			counter.innerHTML = 0
+		}
+		
+	})
+
+</script>

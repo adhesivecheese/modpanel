@@ -1,0 +1,84 @@
+<div id="defaultNotes" style="display:none">{{mpSettings.to_json() | safe}}</div>
+
+<form method="post" action="/" name="removalForm">
+
+<div id="removalQuickView" class="quickview is-left">
+	<header class="quickview-header">
+		<span>-Title-here-</span>
+	</header>
+
+	<div class="quickview-body">
+		<div class="quickview-block">
+			<input name="postID" id="removalPostID" style="display:none">
+			{% for reason in removalReasons %}
+				<label class="checkbox" style="margin-left: 20px; width: calc(100% - 20px); height: 30px; text-indent:-20px; padding-left:20px" onclick='toggleReason("{{reason.index}}","{{jsonNotes }}")'>
+					<input class="removalCheckbox" type="checkbox" id="check-{{reason.index}}" name="removal-{{reason.index}}"> {{reason.title}}
+				</label>
+				<div class="removal-text is-hidden" id="reason-{{reason.index}}"
+					style="padding:5px 20px; background-color: #F0F0F0">
+					{{reason.html | safe}}
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+
+	<footer class="quickview-footer">
+		<div class="field has-addons">
+			<p class="control">
+				<span class="select">
+					<select name="warnType" id="removalType" onchange="changeRemovalOptions({{mpSettings.tempBan | int}})">
+						<option value="none" data-action="{{mpSettings.noNoteAction}}">None</option>
+						{% for type in noteTypes%}
+							{% for item in mpSettings.noteActions %}
+								{%if item.key == type.key %}
+									{%if item.action != "hidden" %}
+										<option value="{{type.key}}" data-action="{{item.action}}" style="color:{{type.color}}">{{type.text}}</option>
+									{%endif%}
+								{%endif%}
+							{% endfor %}
+						{%endfor%}
+					</select>
+
+				</span>
+			</p>
+			<p class="control is-expanded">
+				<input class="input is-fullwidth" type="text" placeholder="Usernote" name="noteText" id="noteText">
+			</p>
+		</div>
+		<section><textarea id="userBanMessage" class="textarea" style="margin-bottom:0.6rem; display:none" placeholder="Ban Message to User" rows="1" name="banmessage"></textarea></section>
+		<div class="field is-grouped is-justify-content-space-between">
+			<div id="removalActionTarget"></div>
+			<button type="button" class="button" onclick="closeRemovals()">Cancel</button>
+		</div>
+	</footer>
+</div>
+</form>
+
+<script>
+setInterval(set_timestamps, 60000)
+changeRemovalOptions({{mpSettings.tempBan | int}})
+
+function changeRemovalOptions(defaultBan) {
+	var selection = document.getElementById("removalType")
+	var target = document.getElementById("removalActionTarget")
+	var action = selection.options[selection.selectedIndex].dataset.action
+	if (action == "remove") {
+		target.innerHTML = `<button type="button" id="removePost" class="button is-danger" onclick="remove_Post('false', '{{mod}}')" data-dismiss="quickview">Remove</button>`
+		document.querySelector("#userBanMessage").style.display = "none"
+	} else if (action == "tempban") {
+		target.innerHTML = `
+		<div class="field has-addons" style="margin-bottom:0">
+			<p class="control"><input class="input" id="banDays" type="number" max="999" min="1" value="${defaultBan}" name="banlength"></p>
+			<p class="control"><button type="button" id="removePostBan" class="button is-danger" onclick="remove_Post('true', '{{mod}}')" data-dismiss="quickview">Temporary Ban</button></p>
+		</div>
+		`
+		document.querySelector("#userBanMessage").style.display = "block"
+	} else if (action == "permban") {
+		target.innerHTML = `<button type="button" id="removePost" class="button is-danger" onclick="remove_Post('true', '{{mod}}')" data-dismiss="quickview">Permanent Ban</button>`
+		document.querySelector("#userBanMessage").style.display = "block"
+	} else {
+		target.innerHTML = ''
+		document.querySelector("#userBanMessage").style.display = "none"
+	}
+}
+</script>

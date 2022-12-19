@@ -1,0 +1,8 @@
+site_name: Modpanel
+nav:
+  - Home: index.md
+  - Setup: setup.md
+  - Tour: pages.md
+  - Using Modpanel: queue.md
+  - Account Information: accounts.md
+theme: readthedocs

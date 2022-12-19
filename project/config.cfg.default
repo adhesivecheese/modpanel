@@ -1,0 +1,84 @@
+#########################################
+## Modpanel Default Configuration File ##
+#########################################
+
+################################################################################
+#                               Flask Settings                                 #
+################################################################################
+
+# used for securely signing the session cookie and can be used for any other 
+# security related needs by extensions or your application. It should be a long
+# random bytes or string.
+SECRET_KEY = '0IBsDOZCDrvsewm2kiJpGkzpn0p8APIJRaAfyBBr'
+
+# Database location and needed login information, if applicable
+SQLALCHEMY_DATABASE_URI = 'sqlite:///users.db'
+
+################################################################################
+#                                  LOGGING                                     #
+################################################################################
+
+# Name of your log file located in logs/
+LOG_NAME = "modpanel.log"
+
+# Log Level. Options: TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
+LOG_LEVEL = "WARNING"
+
+# Whether to include backtraces in log files. May leak enviornment information
+# if set to True
+LOG_BACKTRACE = False
+
+# Amount of time to retain logs for
+LOG_RETENTION = "7 days"
+
+
+################################################################################
+# PRAW settings. These settings should match the values provided by your web   #
+# application you created at https://www.reddit.com/prefs/apps/                #
+################################################################################
+
+# Set to `True` to enable Single-User mode
+SINGLE_USER_MODE = False
+
+CLIENT_ID = 'aaaaaaaaaaaaaa'
+CLIENT_SECRET = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+
+## For Single-User Mode
+REDDIT_USERNAME = '' 
+REDDIT_PASSWORD = '' 
+
+
+## For Multi-User mode
+BASE_URL = 'http://example.com'
+SERVER_PORT = "5000"
+# pagename for your redirect URL. Do not include proceeding slash 
+# e.g. `authorize_callback` for https://example.com:5000/authorize_callback
+AUTHORIZATION_PATH = "authorize_callback" 
+
+# Boolean - Whether new accounts should be marked as active
+# immediately upon creation, or require manual admin activation
+NEW_ACCOUNTS_ACTIVE = True
+
+################################################################################
+#                                CONSTANTS                                     #
+#   Do not modify anything below this line unless you know what you're doing   #
+################################################################################
+
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+USER_AGENT = 'modpanel by /u/adhesiveCheese'
+REDIRECT_URI = f"{BASE_URL}:{SERVER_PORT}/{AUTHORIZATION_PATH}"
+LOG_FORMAT = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
+DEBUG = False
+LOGIN_DISABLED = SINGLE_USER_MODE
+SCOPE = [
+	"identity",
+	"modposts",
+	"modlog",
+	"wikiedit",
+	"wikiread",
+	"modcontributors",
+	"modmail",
+	"read",
+	"history",
+	"report"
+]

@@ -1,0 +1,53 @@
+{% extends "base.jinja2" %}
+
+{% block queueNav %}
+{% if current_user.is_admin %}
+<a class="navbar-item" href="/admin">Administration</a>
+{% endif %}
+<a href="{{ url_for('main.about') }}" class="navbar-item">About</a>
+{%endblock%}
+
+{%block content%}
+		{% if current_user.is_authenticated %}
+
+		<style>
+		.card-header {
+			flex-direction: row-reverse;
+		}
+		.card-header-title {
+			font-weight: 700;
+			color: #8F99A3 !important
+		}
+		.card-header-title:hover {
+			color: var(--link-hover) !important;
+		}
+		.card-header-icon {
+			max-width: 56px;
+		}
+		</style>
+
+		<h1 class="title has-text-centered">Subreddits You Moderate</h1>
+		<div class="columns is-multiline">
+		{% for sub in subreddits%}
+			<div class="column is-4">
+				<div class="card" style="border-left: 10px solid {%if sub[0].primary_color %}{{sub[0].primary_color}} {%else%} {{sub[0].key_color}} {%endif%}; margin-bottom: 0;">
+					<a href="{{sub[0].sr}}/queue/modqueue" class="card-header">
+						<p class="card-header-title" {%if sub[0].community_icon != ''%}style="padding-left:0">{{sub[0].sr}} - {{ sub[1] }}</p>
+						<img class="card-header-icon" src="{{sub[0].community_icon}}">
+						{%else%}>{{sub[0].sr}} - {{ sub[1] }}</p>
+						{%endif%}
+					</a>
+					<footer class="card-footer">
+						<a href="{{sub[0].sr}}/queue/hot" class="card-footer-item">Hot</a>
+						<a href="{{sub[0].sr}}/queue/rising" class="card-footer-item">Rising</a>
+						<a href="{{sub[0].sr}}/queue/new" class="card-footer-item">New</a>
+					</footer>
+				</div>
+			</div>
+
+
+		{% endfor %}
+		</div>
+
+		{% endif %}
+{%endblock%}

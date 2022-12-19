@@ -1,0 +1,33 @@
+<hr>
+{%for item in new%}
+			<div data-subreddit="{{item[1].subreddit.display_name.lower()}}" id="item-{{item[1].id}}" class="card {% if item[1].removed or item[1].removed_by_category %} post-preremoved {% endif %} {% if item[1].approved %} post-preapproved {% endif %}" style=" margin-bottom: 1rem">
+		<header class="card-header">
+			<p class="card-header-title" style="display:block">
+				{%if item[0] == "Submission"%}
+					<a href="{{item[1].link}}">{{item[1].title}}</a>
+				{%else %}
+					Comment on <a href="https://reddit.com{{item[1].permalink}}"> {{item[1].link_title}}</a>
+				{%endif%}
+				<br>
+				<span class="tagline"> submitted to <a href="https://reddit.com/{{item[1].subreddit_name_prefixed}}">/{{item[1].subreddit_name_prefixed}}</a> <span class="timestamp" data-timestamp="{{item[1].created_utc}}">{{item[1].created_utc}}</span> • {{item[1].score}} Karma </span>
+			</p>
+
+
+			<a onclick="collapse_body('{{item[1].id}}')" class="card-header-icon">
+				<span id="arrow-{{item[1].id}}" class="icon">▼</span>
+			</a>
+		</header>
+		<div id="collapsible-{{item[1].id}}" class="is-collapsible">
+			<div class="card-content">
+				{%if item[0] == "Submission"%}
+					<div class="content">{{ item[1].selftext_html | safe }}</div>
+				{%else %}
+					<div class="content">{{item[1].body_html | safe }}</div>
+				{%endif%}
+				
+			</div>
+		</div>
+	</div>
+{%endfor%}
+<button type="button" class="button is-link is-fullwidth" id="loadMore" onclick="load_more({%if new[-1][0] == "Submission" %} 't3_{{new[-1][1]}}' {%else %} 't1_{{new[-1][1]}}'{%endif%})">Load More</button>
+

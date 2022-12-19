@@ -1,0 +1,90 @@
+{% extends "base.jinja2" %}
+
+
+{%block page%} - Administration{%endblock%}
+
+{% block content %}
+<style>
+.table {
+	margin-left: auto;
+	margin-right: auto;
+}
+</style>
+
+<body>
+	<div class="container">
+	<div class="box has-text-centered">
+		<h3 class="title">User Administration</h3>
+		<form action="/" method="post" name="manageUsers">
+			<table class="table is-fullwidth is-striped has-text-centered">
+				<thead>
+					<tr>
+						<th>Username</th>
+						<th>Role</th>
+						<th>Active</th>
+						<th>Delete Token</th>
+						<th>Delete User</th>
+
+					</tr>
+				</thead>
+				<tbody>
+					{%for user in users%}
+					<tr>
+						<th>{{user.name}}</th>
+						<th>
+							<div class="control">
+								<label class="radio">
+									<input type="radio" name="{{user.name}}-role" value="user" {%if not user.admin %} checked {%endif%}> User
+								</label>
+								<label class="radio">
+									<input type="radio" name="{{user.name}}-role" value="admin" {%if user.admin %} checked {%endif%}> Admin
+								</label>
+							</div>
+						</th>
+						<th>
+							<div class="control">
+								<label class="radio">
+									<input type="radio" name="{{user.name}}-active" value="active" {%if user.active %} checked {%endif%}> Active
+								</label>
+								<label class="radio">
+									<input type="radio" name="{{user.name}}-active" value="inactive" {%if not user.active %} checked {%endif%}> Inactive
+								</label>
+							</div>
+						</th>
+						<th>
+							<label class="checkbox">
+								<input type="checkbox" name="{{user.name}}-deleteToken"/>
+							</label>
+						</th>
+						<th>
+							<label class="checkbox">
+								<input type="checkbox" name="{{user.name}}-deleteUser">
+							</label>
+						</th>
+
+					</tr>
+					{%endfor%}
+				</tbody>
+			</table>
+			<div class="field is-grouped is-grouped-right">
+				<p class="control">
+					<button type="button" class="button is-primary" id="manageUsersButton" onclick="sendAjax()">Save</button>
+				</p>
+			</div>
+		</form>
+	</div>
+	</div>
+</body>
+
+<script>
+
+function sendAjax() {
+	var form = document.forms.namedItem("manageUsers")
+	var oData = new FormData(form);
+	sendData = format_sendData(oData)
+	onDone = function () { if (this.readyState == 4 && this.status == 200) { document.getElementById("manageUsersButton").innerHTML="Saved" }	}
+	make_ajax_request(onDone, sendData)
+}
+
+</script>
+{% endblock %}

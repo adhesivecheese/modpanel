@@ -1,0 +1,168 @@
+{% extends "base.jinja2" %}
+
+{%block page%} - {{modSub}} Settings{%endblock%}
+
+{% block queueNav %}
+<a class="navbar-item" href="/{{modSub}}/queue/modqueue">Modqueue</a>
+<a class="navbar-item" href="/{{modSub}}/queue/hot">Hot</a>
+<a class="navbar-item" href="/{{modSub}}/queue/rising">Rising</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+	<header class="card-header">
+		<p class="card-header-title is-centered">Removal Types for Notes</p>
+	</header>
+	<div class="card-content">
+		<div class="content">
+<form action="/" method="post" name="removalTypes">
+	{% for type in noteTypes %}
+	<div class="field is-horizontal">
+		<div class="field-label is-normal" style="flex-grow:1">
+			<label class="label" style="color:{{type.color}}">{{type.text}}</label>
+		</div>
+		<div class="field-body">
+			<div class="field">
+				<div class="control">
+					<div class="select is-fullwidth">
+					  <select id="{{type.key}}" name="{{type.key}}">
+						<option value="none" {% if type.action == "none" %} selected {% endif %}>None</option>
+						<option value="hidden" {% if type.action == "hidden" %} selected {% endif %}>Do Not Display</option>
+						<option value="remove" {% if type.action == "remove" %} selected {% endif %}>Remove</option>
+						<option value="tempban" {% if type.action == "tempban" %} selected {% endif %}>Temporary Ban</option>
+						<option value="permban" {% if type.action == "permban" %} selected {% endif %}>Permanent Ban</option>
+					  </select>
+					</div>
+				  </div>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+
+		<hr>
+
+		<div class="field is-horizontal">
+			<div class="field-label is-normal" style="flex-grow:1">
+				<label class="label">Action for No usernote</label>
+			</div>
+			<div class="field-body">
+				<div class="field">
+					<div class="control">
+						<div class="select is-fullwidth">
+						<select id="noNote" name="noNote">
+							<option value="none" {% if mpSettings.noNoteAction == "none" %} selected {% endif %}>None</option>
+							<option value="remove" {% if mpSettings.noNoteAction == "remove" %} selected {% endif %}>Remove</option>
+							<option value="tempban" {% if mpSettings.noNoteAction == "tempban" %} selected {% endif %}>Temporary Ban</option>
+							<option value="permban" {% if mpSettings.noNoteAction == "permban" %} selected {% endif %}>Permanent Ban</option>
+						</select>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="field is-horizontal">
+			<div class="field-label is-normal" style="flex-grow:1">
+				<label class="label">Default Temporary Ban Days</label>
+			</div>
+			<div class="field-body">
+				<div class="field">
+					<div class="control">
+						<input class="input" id="banLength" type="number" max="999" min="1" value="{{mpSettings.tempBan}}" name="banLength">
+					</div>
+				</div>
+		  </div>
+	  </div>
+	</div>
+</div>
+<footer class="card-footer">
+	<div class="field is-grouped is-grouped-right card-footer-item">
+		<p class="control" style="justify-content: flex-end;">
+			<button type="button" class="button is-primary" id="typesButton" onclick="update_Types()">Save</button>
+		</p>
+	</div>
+</footer>
+</form>
+</div>
+
+
+<div class="card">
+	<header class="card-header">
+		<p class="card-header-title is-centered">Default Usernotes</p>
+	</header>
+	<form action="/" method="post" name="defaultNotes">
+		<div class="card-content">
+			<div class="content">
+				{% for reason in removalReasons %}
+				<div class="field is-horizontal">
+					<div class="field-label is-normal" style="flex-grow:3"><label class="label">{{reason.title}}</label></div>
+					<div class="field-body">
+						<div class="field">
+							<div class="control">
+								<input class="input" type="text" name="{{reason.index}}" placeholder="removal reason for note" {% for note in mpSettings.defaultNotes %}	{% if note.index == reason.index|string %} value="{{note.note}}" {% endif %} {% endfor %}>
+							</div>
+						</div>
+					</div>
+				</div>
+				{% endfor %}
+
+			</div>
+		</div>
+		<footer class="card-footer">
+			<div class="field is-grouped is-grouped-right card-footer-item">
+				<p class="control" style="justify-content: flex-end;">
+					<button type="button" class="button is-primary" onclick="update_Defaults()" id="defaultsButton">Save</button>
+				</p>
+			</div>
+		</footer>
+	</form>
+</div>
+
+<script>
+
+function update_Types() {
+	var form = document.forms.namedItem("removalTypes")
+	var oData = new FormData(form);
+	var sendData = "type=removalTypes&";
+	for (let [key, value] of oData) {
+		sendData += key + "=" + value + "&"
+	}
+
+	var req = new XMLHttpRequest();
+
+	var result = document.getElementById('typesButton');
+
+	req.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200) {
+			result.innerHTML = "Saved";
+		}
+	}
+	req.open('POST', '/{{modSub}}/settings', true);
+	req.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+	req.send(sendData);
+}
+
+function update_Defaults() {
+	var form = document.forms.namedItem("defaultNotes")
+	var oData = new FormData(form);
+	var sendData = "type=defaultNotes&";
+	for (let [key, value] of oData) {
+		sendData += key + "=" + value + "&"
+	}
+
+	var req = new XMLHttpRequest();
+
+	var result = document.getElementById('defaultsButton');
+
+	req.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200) {
+			result.innerHTML = "Saved";
+		}
+	}
+	req.open('POST', '/{{modSub}}/settings', true);
+	req.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+	req.send(sendData);
+}
+
+</script>
+
+{% endblock %}

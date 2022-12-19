@@ -1,0 +1,221 @@
+{% extends "base.jinja2" %}
+
+{%block page%} - {{moderatedSub}} Search{%endblock%}
+{%block subname%}
+<a class="navbar-item" href="/{{moderatedSub}}/settings">
+<span id="queuecount" title="Badge top right" class="badge is-orangered" style="margin-top:20px; margin-right:6px; {%if queueItems | length == 0%} display:none;{%endif%}">{{ queueItems | length }}</span>
+{{moderatedSub}}
+</a>
+	
+{%endblock%}
+
+{% block queueNav %}
+<a class="navbar-item" href="/{{moderatedSub}}/queue/modqueue">Modqueue</a>
+<a class="navbar-item" href="/{{moderatedSub}}/queue/hot">Hot</a>
+<a class="navbar-item" href="/{{moderatedSub}}/queue/rising">Rising</a>
+<a class="navbar-item" href="/{{moderatedSub}}/queue/new">New</a>
+{% endblock %}
+
+{% block javascript_header %}
+<script src="{{url_for('static', filename='queue.js')}}"></script>
+{% endblock %}
+
+{% block content %}
+
+{% include 'removalSidebar.jinja2' %}
+
+<style>
+.label {
+	font-size: .75rem;
+    font-weight: 500;
+}
+
+.box #pushshift-search {
+    margin-bottom: 0;
+    margin-top: -24px;
+}
+
+.box .field.is-horizontal {
+    margin-bottom: 5px;
+}
+
+.box a#searchButton-pushshift {
+    margin-top: 12px;
+}
+
+.box .title.has-text-centered {
+    margin-bottom: 5px;
+}
+
+</style>
+
+<section class="box">
+		<div class="title has-text-centered">Search /r/{{moderatedSub}}</div>
+
+			<div class="tabs is-centered controltabs">
+				<ul>
+				<li class="tab-search is-active" onclick="openTab(event, 'reddit-search', 'search')">
+					<a>Reddit Backend</a>
+				</li>
+				<li class="tab-search" onclick="openTab(event, 'pushshift-search', 'search')">
+					<a>Pushshift Backend</a>
+				</li>
+			</div>
+
+			<div class="content content-tab-search" id="reddit-search">
+				<form class="form-horizontal" id="searchForm-reddit" onsubmit="search_sub('reddit'); return false;">
+					<fieldset>
+						<input type="hidden" id="action" name="action" value="search">
+						<input type="hidden" id="backend" name="backend" value="reddit">
+
+						<div class="field has-addons">
+							<div class="control is-expanded">
+								<input class="input" type="text" id="searchField" name="searchField" placeholder="Airspeed Velocity of an Unladen Swallow">
+							</div>
+							<div class="control">
+								<a id="searchButton-reddit" class="button is-info" onclick="search_sub('reddit')">Search</a>
+							</div>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+
+			<div class="content content-tab-search" id="pushshift-search" style="display: none">
+				<form class="form-horizontal" id="searchForm-pushshift" onsubmit="search_sub('pushshift'); return false;">
+					<fieldset>
+						<input type="hidden" id="action" name="action" value="search">
+						<input type="hidden" id="backend" name="backend" value="pushshift">
+
+						<div class="field is-horizontal">
+							<div class="field-body">
+								<div class="field">
+									<label class="label" for="searchField">Search Query</label>
+									<div class="control is-expanded">
+										<input id="searchField" name="searchField" type="text" placeholder="Airspeed Velocity of an Unladen Swallow" class="input search-query">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="field is-horizontal">
+							<div class="field-body">
+								<div class="field">
+									<label class="label text-xs uppercase font-bold text-gray-100" for="authors">Username(s)</label>
+									<div class="control">
+										<input id="authors" name="authors" type="text" placeholder="e.g. adhesiveCheese" class="input ">
+									</div>
+								</div>
+							</div>
+							
+						</div>
+						<div class="field is-horizontal">
+							<div class="field-body">
+								<div class="field">
+									<label class="label" for="search-kind">Search For</label>
+									<div class="control is-expanded">
+										<div class="select is-fullwidth">
+											<select id="search-kind" name="search-kind" class="">
+												<option value="submission">Posts</option>
+												<option value="comment">Comments</option>
+											</select>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="field-body">
+								<div class="field">
+									<label class="label" for="score">Score Filter</label>
+									<div class="control">
+										<input id="score" name="score" type="text" placeholder="e.g. >10, <100 > 100,<900" class="input ">
+									</div>
+								</div>
+							</div>
+							<div class="field-body">
+								<div class="field">
+									<label class="label" for="after">After</label>
+									<div class="control">
+										<input id="after" name="after" type="datetime-local" class="input ">
+									</div>
+								</div>
+							</div>
+							<div class="field-body">
+								<div class="field">
+									<label class="label" for="before">Before</label>
+									<div class="control">
+										<input id="before" name="before" type="datetime-local" class="input ">
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						
+						<div class="field is-horizontal">
+							<div class="field-body">
+								<div class="field">
+									<div class="control is-expanded">
+										<a id="searchButton-pushshift" class="button is-info is-fullwidth" onclick="search_sub('pushshift')">Search</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+
+</section>
+
+<div id="queueBody" class="columns" style="display:none">
+	<div class="column is-3">
+		{% include 'queue_infobar.jinja2' %}
+	</div>
+
+	<div class="column is-9">
+		<div id="results"></div>
+	</div>
+</div>
+
+
+
+
+
+
+<script>
+
+function search_sub(search) {
+	document.getElementById("results").innerHTML = ""
+	var form = document.forms.namedItem(`searchForm-${search}`)
+	var oData = new FormData(form);
+	var sendData = format_sendData(oData)
+	searchButton = document.querySelector(`#searchButton-${search}`)
+	searchButton.classList.add("is-loading")
+	searchButton.disabled = true
+
+	onDone = function () {
+		if (this.readyState == 4 && this.status == 200) {
+			document.querySelector("#queueBody").removeAttribute('style')
+			document.getElementById("results").innerHTML = this.response
+			document.querySelector("#loadMore").remove()
+			document.querySelector("#queuecount").style.display = "block"
+			document.querySelector("#queuecount").innerHTML = document.getElementsByClassName("card").length
+			script_loaded()
+			document.querySelectorAll(".tagline a").forEach(a => {
+				if (a.innerHTML == "") { a.outerHTML = "[deleted]" }
+				if (a.href.endsWith("/user/")) { a.remove() }
+			})
+
+			//const url = new URL(window.location);
+			//for (let [key, value] of oData) { url.searchParams.set(key, value);	}
+			//window.history.pushState({'search':sendData}, '', url);
+			searchButton.classList.remove("is-loading")
+			searchButton.disabled = false
+		}
+	}
+	make_ajax_request(onDone, sendData)
+
+}
+
+</script>
+{% endblock %}
+
+
+
+

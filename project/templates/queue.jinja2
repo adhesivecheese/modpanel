@@ -1,0 +1,50 @@
+{% extends "base.jinja2" %}
+
+{%block page%} - {{moderatedSub}}{%endblock%}
+{%block subname%}
+<a class="navbar-item" href="/{{moderatedSub}}/settings">
+	{%if queueItems | length > 0%}
+		<span id="queuecount" title="Badge top right" class="badge is-orangered" style="margin-top:20px; margin-right:6px">{{ queueItems | length }}</span>
+	{%endif%}
+	{{moderatedSub}}
+</a>
+	
+{%endblock%}
+
+{% block queueNav %}
+<a class="navbar-item" href="/{{moderatedSub}}/queue/modqueue">Modqueue</a>
+<a class="navbar-item" href="/{{moderatedSub}}/queue/hot">Hot</a>
+<a class="navbar-item" href="/{{moderatedSub}}/queue/rising">Rising</a>
+<a class="navbar-item" href="/{{moderatedSub}}/queue/new">New</a>
+<a class="navbar-item" href="/{{moderatedSub}}/search">Search</a>
+{% endblock %}
+
+{% block queuecount %}
+	{%if queueItems | length > 0%}
+	<span id="queuecount" title="Badge top right" class="badge is-orangered" style="margin-top:20px; margin-right:6px">{{ queueItems | length }}</span>
+	{%endif%}
+{%endblock%}
+
+{% block content %}
+
+{% include 'removalSidebar.jinja2' %}
+
+
+<div class="columns">
+	<div class="column is-3">
+		{% include 'queue_infobar.jinja2' %}
+	</div>
+
+	<div class="column is-9">
+		<div id="items">
+			{% include 'queue_items.jinja2' %}
+			{%if queueItems|length == 0%}<div id="queueIsClean"></div>{%endif%}
+		</div>
+
+	</div>
+</div>
+
+
+<script onload="script_loaded()" src="{{url_for('static', filename='queue.js')}}"></script>
+
+{% endblock %}

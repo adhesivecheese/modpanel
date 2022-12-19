@@ -1,0 +1,74 @@
+{% extends "base.jinja2" %}
+
+{%block page%} - Post Diff{%endblock%}
+
+{% block javascript_header %}
+<script src="{{url_for('static', filename='queue.js')}}"></script>
+{% endblock %}
+
+{% block content %}
+
+<style>
+del {
+	background: #cc0f3552;
+}
+
+ins {
+	background: #2579427a;
+	text-decoration: none;
+}
+</style>
+
+<div id="queueCount" style="display:none"></div>
+
+<div class="card" id="{{post.id}}">
+	<header class="card-header">
+		<p class="card-header-title">
+			<a href="{{post.url}}">{{post.title}}</a>
+		</p>
+	</header>
+
+	<div class="card-content">
+			<p class="tagline">
+				submitted to <a href="https://reddit.com/r/{{post.subreddit.display_name}}">/r/{{post.subreddit.display_name}}</a> 
+				<span class="timestamp" data-timestamp="{{post.created_utc}}">{{post.created_utc}}</span>
+				by <a href="https://reddit.com/u/{{post.author.name}}">{{post.author.name}}</a>
+				<a class="button is-link is-rounded" style="font-size:0.6rem" href="/user/{{post.author.name}}" target="_blank">overview</a>
+			</p>
+
+		<div class="tabs is-centered controltabs">
+			<ul>
+				<li class="tab-{{post.id}}" onclick="openTab(event, 'pushshift', '{{post.id}}')">
+					<a>Pushshift</a>
+				</li>
+				<li class="tab-{{post.id}} is-active" onclick="openTab(event, 'diff', '{{post.id}}')">
+					<a>Difference</a>
+				</li>
+				<li class="tab-{{post.id}}" onclick="openTab(event, 'current', '{{post.id}}')">
+					<a>Current</a>
+				</li>
+		</div>
+
+		<hr>
+
+		<div class="content content-tab-{{post.id}}" id="pushshift" style="display: none">{{ post.pushshift | safe }}</div>
+		<div class="content content-tab-{{post.id}}" id="diff">{{ post.diff | safe }}</div>
+		<div class="content content-tab-{{post.id}}" id="current" style="display: none">{{ post.current | safe }}</div>
+	</div>
+	<form action="/" method="post">
+		<footer class="card-footer">
+			<p class="card-footer-item">
+				<button type="button" class="button is-fullwidth is-success is-light" id="btn-approve-{{post.id}}" onclick="approve_post('{{post.id}}')">Approve</button>
+			</p>
+		</footer>
+	</form>
+</div>
+
+<p class="is-size-7 has-text-centered">drag the link for the <a href="javascript:(function()%7Burl%3Dwindow.location.href%3B%0Aurl%3Durl.split(%22comments%2F%22)%5B1%5D%3B%0Aid%20%3D%20url.split(%22%2F%22)%5B0%5D%3B%0Awindow.location.href%20%3D%20%22{{url}}%22%2Bid%7D)()%3B">Diff Bookmarklet</a> to your bookmarks bar to see the diff for any post on Reddit.</p>
+
+<script>
+	set_timestamps() 
+	add_image_expandos()
+</script>
+
+{%endblock%}

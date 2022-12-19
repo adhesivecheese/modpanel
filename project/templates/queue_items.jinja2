@@ -1,0 +1,125 @@
+{% for post in queueItems %}
+<div id="queueitem-{{post.id}}" class="card {% if post.removed %} post-preremoved {% endif %} {% if post.approved %} post-preapproved {% endif %} {% if post.selftext == '[deleted]'%} post-deleted {%endif%}">
+	<header class="card-header">
+		<p class="card-header-title {% if post.removed_by_category == 'automod_filtered' %} post-filtered {% endif %}">
+			<a href="{{post.link}}">{{post.title}}</a>
+		</p>
+		<a onclick="collapse_body('{{post.id}}')" class="card-header-icon {% if post.removed_by_category == 'automod_filtered' %} post-filtered {% endif %}">
+			<span id="arrow-{{post.id}}" class="icon">▲</span>
+		</a>
+	</header>
+	<div id="collapsible-{{post.id}}" class="is-collapsible is-active">
+		<div class="card-content">
+			<p class="has-text-centered">{% if post.removed_by_category == "automod_filtered" %}Removed by Automoderator: {{post.amRemovalReason | safe}} {% endif %}</p>
+			<p class="tagline">
+				submitted <span class="timestamp" data-timestamp="{{post.created_utc}}">{{post.created_utc}}</span> by
+				<a href="https://reddit.com/u/{{post.author.name}}">{{post.author.name}}</a>
+				<a class="button is-link is-rounded" style="font-size:0.6rem" href="/user/{{post.author.name}}" target="_blank">overview</a>
+			</p>
+			<div class="tabs is-centered controltabs">
+				<ul>
+					<li class="tab-{{post.id}} is-active" onclick="openTab(event, 'reports-{{post.id}}', '{{post.id}}')">
+						<a>Reports</a>
+					</li>
+					<li class="tab-{{post.id}}" onclick="openTab(event, 'usernotes-{{post.id}}', '{{post.id}}')">
+						<a> 
+							<span id="notecount-{{post.id}}" title="Badge top right" class="badge is-orangered" style="margin-top:12px; margin-right:10px; {%if post.usernotes|length == 0%} display:none;{%endif%}">{{post.usernotes|length}}</span>
+							Toolbox Notes
+						</a>
+					</li>
+					<li class="tab-{{post.id}}" onclick="openTab(event, 'banactions-{{post.id}}', '{{post.id}}')">
+						<a>Ban</a>
+					</li>
+			</div>
+			<div id="reports-{{post.id}}" class="content-tab-{{post.id}}"> {% for report in post.mod_reports %} <div class="mod-report-item has-text-centered">{{report[1]}}: {{report[0] | safe}}</div>{% endfor %} {% for report in post.user_reports %} <div class="user-report-item has-text-centered">{{report[1]}}: {{report[0]}}</div>{% endfor %} </div>
+			<div id="usernotes-{{post.id}}" class="content-tab-{{post.id}} level" style="display:none">
+				<form action="/" method="post" name="addnote-{{post.id}}">
+					<div class="field has-addons">
+						<p class="control">
+							<span class="select">
+								<select name="warnType">
+									<option value='None'>None</option> {% for type in noteTypes %} <option value='{{type.key}}' style='color:{{type.color}}'>{{type.text}}</option> {% endfor %}
+								</select>
+							</span>
+						</p>
+						<p class="control is-expanded">
+							<input class="input" type="text" placeholder="Add New Usernote" name="noteText">
+						</p>
+						<p class="control">
+							<button type="button" class="button is-primary" onclick="add_note('{{post.id}}', '{{mod}}')">Add Note</button>
+						</p>
+					</div>
+				</form>
+				<div id="extantNotes-{{post.id}}">
+				{% for note in post.usernotes %}
+					<div class="columns is-gapless" data-usernote="un-{{note.user}}-{{note.time}}" style="margin:0.5rem">
+						<div class="column is-one-fifth">
+							<p><a href="https://reddit.com/user/{{note.mod}}">/u/{{note.mod}}</a></p>
+							<p class="is-size-7 timestamp-absolute" data-timestamp="{{note.time}}">{{note.time}}</p>
+						</div>
+
+						{% if note.link %}
+						<a href="{{note.link}}" class="column">
+						{% else %}
+						<div class="column">
+						{% endif %}
+							{% for type in noteTypes%}
+								{%if note.warning == type.key%}
+									<span style='color:{{type.color}}'>[{{type.text}}]</span>
+								{%endif%}
+							{%endfor%}
+							{{note.note}}
+						{% if note.link %}
+						</a>
+						{% else %}
+						</div>
+						{% endif %}
+
+						<div class="column is-1">
+							<button id="delnote-{{post.id}}-{{note.time}}" class="button is-danger is-small" onclick="delete_usernote('{{note.user}}','{{note.time}}', '{{post.id}}')">Delete</button>
+						</div>
+					</div>
+					<hr style="margin:0"> {% endfor %}
+				</div>
+			</div>
+			<div id="banactions-{{post.id}}" class="content-tab-{{post.id}} is-grouped" style="display:none">
+				<form action="/" method="post" name="banuser-{{post.id}}">
+					<div class="field mb-1">
+						<p class="control is-expanded">
+							<input class="input" type="text" placeholder="User Note" name="noteText">
+						</p>
+					</div>
+					<div class="field is-horizontal">
+						<div class="field-body level">
+							<label class="checkbox py-3">
+								<input type="checkbox" name="spam"> Spam Post </label>
+							<label class="checkbox p-3" style="float:right">
+								<input type="checkbox" name="wipe"> Wipe History </label>
+							<div class="field-body">
+								<div class="field">
+									<button id="banButton-{{post.id}}" type="button" class="button is-danger is-fullwidth" onclick="ban_user('{{post.id}}', '{{mod}}')">Ban User</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+			<hr>
+			<div class="content">{{ post.html | safe }}</div>
+		</div>
+		<form action="/" method="post">
+			<footer class="card-footer">
+				<p class="card-footer-item">
+					<button type="button" class="button is-fullwidth is-success is-light" id="btn-approve-{{post.id}}" onclick="approve_post('{{post.id}}')">Approve</button>
+				</p>
+				<p class="card-footer-item">
+					<button type="button" class="button is-fullwidth is-danger is-light" id="btn-remove-{{post.id}}" onclick="primeRemoval(event, '{{post.id}}', '{{post.author.name}}')">Remove</button>
+				</p>
+			</footer>
+		</form>
+	</div>
+</div> {% endfor %}
+
+{%if queue != "modqueue" %}
+	<button type="button" class="button is-link is-fullwidth" id="loadMore" onclick="load_more('t3_{{queueItems[-1]}}')">Load More</button>
+{%endif%}

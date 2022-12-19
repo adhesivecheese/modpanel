@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Modpanel - /u/{{user.name}}</title>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css" />
+	<link rel="stylesheet" href="{{url_for('static', filename='custom.css')}}">
+	<link rel="stylesheet" href="{{url_for('static', filename='themes.css')}}">
+	<script>
+		var theme = (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+		if (localStorage.getItem('theme')) { theme = localStorage.getItem('theme') }
+		document.documentElement.setAttribute('data-theme', theme)
+	</script>
+	<script async type="text/javascript" src="{{url_for('static', filename='bulma.js')}}"></script>
+	<script src="{{url_for('static', filename='main.js')}}"></script>
+	<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js"></script>
+</head>
+
+<style>
+
+.section {padding: 1rem 1.5rem;}
+.card-header-title {display: block}
+
+</style>
+
+<div class="container">
+
+	<section class="section">
+
+		<h1 class="title has-text-centered"><a href="https://reddit.com/u/{{user.name}}">/u/{{user.name}}</a></h1>
+		<nav class="level">
+			<div class="level-item has-text-centered">
+				<div>
+					<p class="heading">Account Created</p>
+					<p class="title timestamp" data-timestamp="{{user.created_utc}}">{{user.created_utc}}</p>
+				</div>
+			</div>
+			<div class="level-item has-text-centered">
+				<div>
+					<p class="heading">Link Karma</p>
+					<p class="title">{{user.link_karma}}</p>
+				</div>
+			</div>
+			<div class="level-item has-text-centered">
+				<div>
+					<p class="heading">Comment Karma</p>
+					<p class="title">{{user.comment_karma}}</p>
+				</div>
+			</div>
+		</nav>
+	</section>
+	<section class="section" style="padding-top:0">
+		<nav class="level">
+			<div class="level-item has-text-centered">
+				<label class="checkbox">
+					<input type="checkbox" id="hideUnmod"> Hide Unmoddable
+				</label>
+			</div>
+			<div class="level-item has-text-centered">
+				<label class="checkbox">
+					<input type="checkbox" id="hideModded"> Hide Moderated
+				</label>
+			</div>
+		</nav>
+	</section>
+
+	<section id="items" class="section" style="padding-top:0">
+
+		{%for item in new%}
+			<div data-subreddit="{{item[1].subreddit.display_name.lower()}}" id="item-{{item[1].id}}" class="card {% if item[1].removed or item[1].removed_by_category %} post-preremoved {% endif %} {% if item[1].approved %} post-preapproved {% endif %} {%if item[1].pin %}post-pinned {%endif%}" style=" margin-bottom: 1rem">
+				<header class="card-header">
+					<p class="card-header-title">
+						{%if item[0] == "Submission"%}
+							{%if item[1].pin %}📌{%endif%}
+							<a href="https://reddit.com{{item[1].permalink}}">{{item[1].title}}</a>
+						{%else %}
+							Comment on <a href="https://reddit.com{{item[1].permalink}}"> {{item[1].link_title}}</a>
+						{%endif%}
+						<br>
+						<span class="tagline"> submitted to <a href="https://reddit.com/{{item[1].subreddit_name_prefixed}}">/{{item[1].subreddit_name_prefixed}}</a> <span class="timestamp" data-timestamp="{{item[1].created_utc}}">{{item[1].created_utc}}</span> • {{item[1].score}} Karma </span>
+					</p>
+					<a onclick="collapse_body('{{item[1].id}}')" class="card-header-icon"> <span id="arrow-{{item[1].id}}" class="icon">▼</span> </a>
+				</header>
+				<div id="collapsible-{{item[1].id}}" class="is-collapsible">
+					<div class="card-content">
+						{%if item[0] == "Submission"%}
+							<div class="content">{{ item[1].selftext_html | safe }}</div>
+						{%else %}
+							<div class="content">{{item[1].body_html | safe }}</div>
+						{%endif%}
+						
+					</div>
+				</div>
+			</div>
+		{%endfor%}
+
+		<button type="button" class="button is-link is-fullwidth" id="loadMore" onclick="load_more({%if new[-1][0] == "Submission" %} 't3_{{new[-1][1]}}' {%else %} 't1_{{new[-1][1]}}'{%endif%})">Load More</button>
+	</section>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+	set_timestamps() 
+	add_image_expandos()
+})
+
+document.getElementById("hideUnmod").addEventListener('change', (event) => {
+	if (event.currentTarget.checked) { hide_unmoderateable() }
+	else { show_unmoderateable() }
+})
+
+function hide_unmoderateable(){
+	modSubs = {{modSubs}}
+	document.querySelectorAll(".card").forEach(card => {
+		if (!modSubs.includes(card.dataset.subreddit)) { card.style.display="none" } 
+	});
+}
+
+function show_unmoderateable(){
+	document.querySelectorAll(".card").forEach(card => { card.style.display="block"	})
+	if (document.getElementById("hideModded").checked) {hide_modded()}
+
+}
+
+document.getElementById("hideModded").addEventListener('change', (event) => {
+	if (event.currentTarget.checked) { hide_modded() }
+	else { show_modded() }
+})
+
+
+function hide_modded(){
+	document.querySelectorAll(".card").forEach(card => {
+		if (
+			card.classList.contains("post-preapproved") ||
+			card.classList.contains("post-preremoved")
+		) { card.style.display="none" } 
+	});
+}
+
+function show_modded(){
+	document.querySelectorAll(".card").forEach(card => { card.style.display="block" })
+	if (document.getElementById("hideUnmod").checked) {hide_unmoderateable()}
+
+}
+</script>
